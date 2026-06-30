@@ -143,6 +143,18 @@ public final class SMSavedData extends SavedData {
 	}
 
 	/**
+	 * 清空所有垃圾箱内容喵~
+	 */
+	public void clearDustbins() {
+		synchronized (this.dustbins) {
+			for (SimpleContainer dustbin : this.dustbins) {
+				dustbin.clearContent();
+			}
+		}
+		this.setDirty();
+	}
+
+	/**
 	 * 获取指定索引的垃圾箱容器喵~
 	 *
 	 * @param index 垃圾箱索引喵~

@@ -81,6 +81,10 @@ public final class SMCommonConfig {
 	 */
 	public static final ForgeConfigSpec.IntValue DUSTBIN_COUNT;
 	/**
+	 * 每次清理前是否清空垃圾箱喵~
+	 */
+	public static final ForgeConfigSpec.BooleanValue CLEAR_DUSTBIN_BEFORE_SWEEP;
+	/**
 	 * 清理完成后的聊天消息模板喵~
 	 */
 	public static final ForgeConfigSpec.ConfigValue<String> CHAT_MESSAGE_AFTER_SWEEP;
@@ -128,6 +132,8 @@ public final class SMCommonConfig {
 				.define("MESSAGE_WRONG_DUSTBIN", "[Sweeper Maid]: Wrong dustbin.");
 		DUSTBIN_NAME = BUILDER.comment("Name of dustbins.").define("DUSTBIN_NAME", "Dustbin ");
 		DUSTBIN_COUNT = BUILDER.comment("Count of dustbins").defineInRange("DUSTBIN_COUNT", 8, 1, 64);
+		CLEAR_DUSTBIN_BEFORE_SWEEP = BUILDER.comment("If true, clear all previous dustbin contents before each item sweeping.")
+				.define("CLEAR_DUSTBIN_BEFORE_SWEEP", true);
 		CHAT_MESSAGE_AFTER_SWEEP = BUILDER.comment("What chat message will be sent to players after a sweep. Command will be appended to the end of the chat message.")
 				.define("CHAT_MESSAGE_AFTER_SWEEP", "[Sweeper Maid]: Anything's missing? Let's checkout the dustbin:");
 		PERMISSION_LEVEL_DUSTBIN = BUILDER.comment("Permission level of a player to open the dustbin.").defineInRange("PERMISSION_LEVEL_DUSTBIN", 0, 0, 4);

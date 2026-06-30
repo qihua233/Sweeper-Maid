@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
  * <ul>
  *     <li>{@code /sweepermaid dustbin [index]} - 打开指定索引的垃圾箱界面喵~</li>
  *     <li>{@code /sweepermaid clean} - 立即执行清理操作喵~</li>
+ *     <li>{@code /sweepermaid keepclean} - 供任务系统触发的清理操作喵~</li>
  * </ul>
  * </p>
  *
@@ -46,6 +47,9 @@ public final class SMCommands {
 		).then(
 				Commands.literal("clean").requires(stack -> stack.hasPermission(SMCommonConfig.PERMISSION_LEVEL_CLEAN.get()))
 						.executes(context -> clean())
+		).then(
+				Commands.literal("keepclean").requires(stack -> stack.hasPermission(SMCommonConfig.PERMISSION_LEVEL_CLEAN.get()))
+						.executes(context -> taskClean())
 		);
 	}
 
@@ -92,6 +96,19 @@ public final class SMCommands {
 	 */
 	private static int clean() {
 		SweeperMaid.clean.run();
+		return 1;
+	}
+
+	/**
+	 * 执行任务系统清理操作喵~
+	 * <p>
+	 * 触发面向任务系统的清理回调函数喵~
+	 * </p>
+	 *
+	 * @return 命令执行结果码喵~
+	 */
+	private static int taskClean() {
+		SweeperMaid.taskClean.run();
 		return 1;
 	}
 

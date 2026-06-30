@@ -82,6 +82,10 @@ public class SweeperMaid {
 	 * 立即清理回调函数，用于命令执行时触发清理喵~
 	 */
 	public static Runnable clean = () -> {};
+	/**
+	 * 任务清理回调函数，用于任务系统触发清理喵~
+	 */
+	public static Runnable taskClean = () -> {};
 
 	/**
 	 * 构造方法：注册配置和事件监听器喵~
@@ -90,7 +94,8 @@ public class SweeperMaid {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SMCommonConfig.getConfig());
 		MinecraftForge.EVENT_BUS.register(this);
 
-		clean = () -> this.sweepTickRemain = 0;
+		clean = () -> this.requestSweep(false);
+		taskClean = () -> this.requestSweep(true);
 	}
 
 	/**
@@ -101,6 +106,10 @@ public class SweeperMaid {
 	 * 是否需要在下一刻执行清理喵~
 	 */
 	private boolean toSweep = false;
+	/**
+	 * 下一次清理是否跳过垃圾箱清空喵~
+	 */
+	private boolean skipDustbinClearForNextSweep = false;
 	/**
 	 * 是否为首次刻 tick 喵~
 	 */
@@ -132,21 +141,35 @@ public class SweeperMaid {
 	@SubscribeEvent
 	public void onTick(TickEvent.ServerTickEvent event) {
 		MinecraftServer server = event.getServer();
-		if (SMCommonConfig.ITEM_SWEEP_INTERVAL.get() == 0) {
-			return;
-		}
 		if (event.phase == TickEvent.Phase.START) {
+			if (SMCommonConfig.ITEM_SWEEP_INTERVAL.get() == 0) {
+				return;
+			}
 			this.prepareAndSendCountdownMessage(server);
 		} else if (event.phase == TickEvent.Phase.END) {
 			if (this.firstTick) {
 				this.firstTick = false;
 				this.toSweep = false;
+				this.skipDustbinClearForNextSweep = false;
 				SMSavedData.initialize();
 			} else if (this.toSweep) {
 				this.toSweep = false;
-				doSweeping(server);
+				boolean skipDustbinClear = this.skipDustbinClearForNextSweep;
+				this.skipDustbinClearForNextSweep = false;
+				doSweeping(server, skipDustbinClear);
 			}
 		}
+	}
+
+	/**
+	 * 请求在当前或下一次服务器刻执行清理喵~
+	 *
+	 * @param skipDustbinClear 是否跳过清空垃圾箱喵~
+	 */
+	private void requestSweep(boolean skipDustbinClear) {
+		this.skipDustbinClearForNextSweep = skipDustbinClear;
+		this.toSweep = true;
+		this.sweepTickRemain = SMCommonConfig.ITEM_SWEEP_INTERVAL.get() * SharedConstants.TICKS_PER_SECOND;
 	}
 
 	/**
@@ -252,8 +275,11 @@ public class SweeperMaid {
 	 *
 	 * @param server 服务器实例喵~
 	 */
-	private static void doSweeping(MinecraftServer server) {
+	private static void doSweeping(MinecraftServer server, boolean skipDustbinClear) {
 		SMSavedData instance = SMSavedData.getInstance();
+		if (SMCommonConfig.CLEAR_DUSTBIN_BEFORE_SWEEP.get() && !skipDustbinClear) {
+			instance.clearDustbins();
+		}
 
 		AtomicInteger droppedItems = new AtomicInteger();
 		AtomicInteger extraEntities = new AtomicInteger();
